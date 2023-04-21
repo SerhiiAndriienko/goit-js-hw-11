@@ -8,7 +8,7 @@ const inputEl = document.getElementById('search-box');
 const loadMoreBtn = document.querySelector('.load-more-btn');
 
 const DEBOUNCE_DELAY = 800;
-const throttledLoadMore = _.throttle(loadMore, 5000);
+const throttledLoadMore = _.throttle(loadMore, 2000);
 
 inputEl.addEventListener('input', _.debounce(fetchRequests, DEBOUNCE_DELAY));
 // loadMoreBtn.addEventListener('click', loadMore);
