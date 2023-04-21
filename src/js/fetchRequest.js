@@ -7,59 +7,32 @@ import SimpleLightbox from 'simplelightbox';
 
 const [mainContent] = document.getElementsByClassName('gallery');
 const loadMoreBtn = document.querySelector('.load-more-btn');
+const BASE_URL =
+  'https://pixabay.com/api/?key=35462061-8a52d4784631467a148110ba5&q=';
 
 let gallery;
 let markup = '';
 let page = 1;
-function fetchRequests(e) {
+let totalHits = 0;
+let finalTotalHits = 0;
+async function fetchRequests(e) {
   if (e.target.value.trim()) {
-    let feltchRequest = axios
-      .get(
-        `https://pixabay.com/api/?key=35462061-8a52d4784631467a148110ba5&q=${e.target.value.trim()}&image_type=photo&pretty=true&page=${page}`
-      )
-      .then(response => {
-        if (response.data.hits.length === 0) {
-          Notify.failure(
-            'Sorry there are no images matching your search quaery. Please try again'
-          );
-          return 0;
-        }
-        return response.data.hits;
-      });
-    makeMarkup(feltchRequest);
-  } else {
-    countryCard.innerHTML = '';
-    countryList.innerHTML = '';
-  }
-}
-function makeMarkup(requestsArray) {
-  requestsArray.then(requests => {
-    if (requests === 0) {
-      return;
+    let feltchRequest = await axios.get(
+      `${BASE_URL}${e.target.value.trim()}&image_type=photo&pretty=true&orientation=horizontal&safesearch=true&webformatURL=180&per_page=40&&page=${page}`
+    );
+    finalTotalHits = feltchRequest.data.totalHits;
+    if (feltchRequest.data.hits.length === 0) {
+      Notify.failure(
+        'Sorry there are no images matching your search quaery. Please try again'
+      );
+      return 0;
     }
-    markup = requests.reduce((acc, request) => {
-      acc += makeOneCard(request);
-      return acc;
-    }, '');
-
-    mainContent.innerHTML = markup;
-    loadMoreBtn.classList.remove('disabled');
-
-    createGallery();
-  });
-}
-function createGallery() {
-  gallery = new SimpleLightbox('.gallery a');
-  mainContent.addEventListener('click', onImageClick);
-}
-function onImageClick(event) {
-  event.preventDefault();
-  if (event.target === event.currentTarget) {
-    return;
+    Notify.success(`Hooray! we found ${feltchRequest.data.totalHits} images`);
+    makeMarkup(feltchRequest.data.hits);
+  } else {
+    mainContent.innerHTML = '';
+    loadMoreBtn.classList.add('disabled');
   }
-  gallery.on('closed.simplelightbox', function () {
-    gallery.refresh();
-  });
 }
 function makeOneCard(oneImg) {
   const {
@@ -81,33 +54,59 @@ function makeOneCard(oneImg) {
 
 </ul>
   </a></li>`;
-  // console.log(markup);
-
   return markup;
 }
-function loadMore() {
-  const inputEl = document.getElementById('search-box');
-
-  const value = inputEl.value.trim();
-  page += 1;
-  let feltchRequest = axios
-    .get(
-      `https://pixabay.com/api/?key=35462061-8a52d4784631467a148110ba5&q=${value}&image_type=photo&pretty=true&page=${page}`
-    )
-    .then(response => {
-      return response.data.hits;
-    });
-  addNewElement(feltchRequest);
+function makeMarkup(requestsArray) {
+  page = 1;
+  totalHits += requestsArray.length;
+  if (requestsArray === 0) {
+    return;
+  }
+  markup = requestsArray.reduce((acc, request) => {
+    acc += makeOneCard(request);
+    return acc;
+  }, '');
+  mainContent.innerHTML = markup;
+  if (totalHits > finalTotalHits) {
+    Notify.info("We're sorry, but you've reached the end of search results.");
+  }
+  if (totalHits < finalTotalHits) {
+    loadMoreBtn.classList.remove('disabled');
+  }
+  gallery = new SimpleLightbox('.gallery a');
 }
 
-function addNewElement(requestsArray) {
-  requestsArray.then(requests => {
-    let newMarkup = requests.reduce((acc, request) => {
-      acc += makeOneCard(request);
-      return acc;
-    }, '');
-    markup += newMarkup;
-    mainContent.innerHTML = markup;
-    gallery.refresh();
-  });
+// async function loadMore() {
+//   const inputEl = document.getElementById('search-box');
+//   const value = inputEl.value.trim();
+//   page += 1;
+//   let feltchRequest = await axios.get(
+//     `${BASE_URL}${value}&image_type=photo&pretty=true&orientation=horizontal&safesearch=true&webformatURL=180&per_page=40&&page=${page}`
+//   );
+//   addNewElements(feltchRequest.data.hits);
+// }
+async function loadMore() {
+  const inputEl = document.getElementById('search-box');
+  const value = inputEl.value.trim();
+  page += 1;
+  let feltchRequest = await axios.get(
+    `${BASE_URL}${value}&image_type=photo&pretty=true&orientation=horizontal&safesearch=true&webformatURL=180&per_page=40&&page=${page}`
+  );
+  addNewElements(feltchRequest.data.hits);
+}
+
+function addNewElements(requestsArray) {
+  let newMarkup = requestsArray.reduce((acc, request) => {
+    acc += makeOneCard(request);
+    return acc;
+  }, '');
+  markup += newMarkup;
+  mainContent.innerHTML = markup;
+  totalHits += 40;
+  if (finalTotalHits < totalHits) {
+    Notify.info("We're sorry, but you've reached the end of search results.");
+    loadMoreBtn.classList.add('disabled');
+  }
+
+  gallery.refresh();
 }
