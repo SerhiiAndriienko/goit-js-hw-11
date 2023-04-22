@@ -1,9 +1,12 @@
-export { fetchRequests, loadMore };
+export { fetchRequests, checkPosition };
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
 import axios from 'axios';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from 'simplelightbox';
+const _ = require('lodash');
+const DEBOUNCE_DELAY = 800;
+const throttledLoadMore = _.throttle(loadMore, DEBOUNCE_DELAY);
 
 const [mainContent] = document.getElementsByClassName('gallery');
 const loadMoreBtn = document.querySelector('.load-more-btn');
@@ -15,7 +18,10 @@ let markup = '';
 let page = 1;
 let totalHits = 0;
 let finalTotalHits = 0;
+
 async function fetchRequests(e) {
+  totalHits = 0;
+  page = 1;
   if (e.target.value.trim()) {
     let feltchRequest = await axios.get(
       `${BASE_URL}${e.target.value.trim()}&image_type=photo&pretty=true&orientation=horizontal&safesearch=true&webformatURL=180&per_page=40&&page=${page}`
@@ -25,6 +31,8 @@ async function fetchRequests(e) {
       Notify.failure(
         'Sorry there are no images matching your search quaery. Please try again'
       );
+      mainContent.innerHTML = '';
+      loadMoreBtn.classList.add('disabled');
       return 0;
     }
     Notify.success(`Hooray! we found ${feltchRequest.data.totalHits} images`);
@@ -34,6 +42,7 @@ async function fetchRequests(e) {
     loadMoreBtn.classList.add('disabled');
   }
 }
+
 function makeOneCard(oneImg) {
   const {
     largeImageURL: img,
@@ -56,6 +65,7 @@ function makeOneCard(oneImg) {
   </a></li>`;
   return markup;
 }
+
 function makeMarkup(requestsArray) {
   page = 1;
   totalHits += requestsArray.length;
@@ -76,23 +86,30 @@ function makeMarkup(requestsArray) {
   gallery = new SimpleLightbox('.gallery a');
 }
 
-// async function loadMore() {
-//   const inputEl = document.getElementById('search-box');
-//   const value = inputEl.value.trim();
-//   page += 1;
-//   let feltchRequest = await axios.get(
-//     `${BASE_URL}${value}&image_type=photo&pretty=true&orientation=horizontal&safesearch=true&webformatURL=180&per_page=40&&page=${page}`
-//   );
-//   addNewElements(feltchRequest.data.hits);
-// }
 async function loadMore() {
+  // console.log(`totalHits:${totalHits}`);
+  // console.log(`finalTotalHits:${finalTotalHits}`);
+  if (totalHits >= finalTotalHits) {
+    return;
+  }
+  if (finalTotalHits < totalHits) {
+    Notify.info("We're sorry, but you've reached the end of search results.");
+    window.removeEventListener('scroll', _.throttle(checkPosition, 1000));
+
+    loadMoreBtn.classList.add('disabled');
+    return;
+  }
   const inputEl = document.getElementById('search-box');
+  const imagesEl = document.getElementsByClassName('gallery__item');
+
   const value = inputEl.value.trim();
   page += 1;
+
   let feltchRequest = await axios.get(
     `${BASE_URL}${value}&image_type=photo&pretty=true&orientation=horizontal&safesearch=true&webformatURL=180&per_page=40&&page=${page}`
   );
   addNewElements(feltchRequest.data.hits);
+  console.log(imagesEl.length);
 }
 
 function addNewElements(requestsArray) {
@@ -109,4 +126,14 @@ function addNewElements(requestsArray) {
   }
 
   gallery.refresh();
+}
+function checkPosition() {
+  const height = document.body.offsetHeight;
+  const screenHeight = window.innerHeight;
+  const scrolled = window.scrollY;
+  const threshold = height - screenHeight / 4;
+  const position = scrolled + screenHeight;
+  if (position >= threshold) {
+    throttledLoadMore();
+  }
 }

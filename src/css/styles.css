@@ -107,29 +107,7 @@ body {
 .load-more-btn {
   display: block;
   margin: 0 auto;
-
-  text-decoration: none;
-  width: 140px;
-  height: 45px;
-  line-height: 45px;
-  border-radius: 45px;
-  font-size: 11px;
-  text-transform: uppercase;
-  text-align: center;
-  letter-spacing: 3px;
-  font-weight: 600;
-  color: #fffefe;
-  background: rgb(119, 178, 245);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-  transition: 0.3s;
 }
-
-.load-more-btn:hover {
-  background: #2e6ee5;
-  box-shadow: 0 15px 20px rgba(46, 95, 229, 0.4);
-  color: white;
-}
-
 .disabled {
   display: none;
 }
