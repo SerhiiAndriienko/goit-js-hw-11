@@ -8,3 +8,12 @@ const DEBOUNCE_DELAY = 800;
 
 inputEl.addEventListener('input', _.debounce(fetchRequests, DEBOUNCE_DELAY));
 window.addEventListener('scroll', _.throttle(checkPosition, DEBOUNCE_DELAY));
+
+// const { height: cardHeight } = document
+//   .querySelector('.gallery')
+//   .firstElementChild.getBoundingClientRect();
+
+// window.scrollBy({
+//   top: cardHeight,
+//   behavior: 'smooth',
+// });

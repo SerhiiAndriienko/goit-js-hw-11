@@ -124,7 +124,13 @@ function addNewElements(requestsArray) {
     Notify.info("We're sorry, but you've reached the end of search results.");
     loadMoreBtn.classList.add('disabled');
   }
-
+  const oneImg = document
+    .querySelector('ul')
+    .firstElementChild.getBoundingClientRect();
+  window.scrollBy({
+    top: oneImg.height * 2,
+    behavior: 'smooth',
+  });
   gallery.refresh();
 }
 function checkPosition() {
