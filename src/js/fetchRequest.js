@@ -29,7 +29,7 @@ async function fetchRequests(e) {
     finalTotalHits = feltchRequest.data.totalHits;
     if (feltchRequest.data.hits.length === 0) {
       Notify.failure(
-        'Sorry there are no images matching your search quaery. Please try again'
+        `Sorry there are no images matching your search ${e.target.value.trim()}. Please try again`
       );
       mainContent.innerHTML = '';
       loadMoreBtn.classList.add('disabled');
