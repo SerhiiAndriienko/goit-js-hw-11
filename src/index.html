@@ -11,7 +11,26 @@
 
 <body>
   <header class="blue-header">
-    <input type="text" name="searchQuery" id="search-box" autocomplete="off" placeholder="Search images..." />
+    <form class="radio-buttons">
+      <label>
+        <input id="js-photo" type="radio" name="response-type" checked>
+
+        <span> Photo</span>
+
+      </label>
+      <label>
+        <input id="js-video" type="radio" name="response-type">
+
+        <span> Video</span>
+
+      </label>
+
+    </form>
+    <div class="form__group field">
+      <input type="input" name="searchQuery" class="form__field" id="search-box" autocomplete="off"
+        placeholder="Enter here..." />
+      <label for="name" class="form__label">Enter here:</label>
+    </div>
   </header>
   <div class="main-content">
     <div>
